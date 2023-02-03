@@ -138,8 +138,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("successfully transferred", filename)
 
 	if *script != "" {
-		log.Println("Calling script", "/bin/bash", *script, filename, group)
-		output, err := exec.Command("/bin/bash", *script, filename, group).Output()
+		log.Println("Calling script", *scriptShell, *script, filename, group)
+		output, err := exec.Command(*scriptShell, *script, filename, group).Output()
 		log.Println("----- START", *script, filename, "-----")
 		fmt.Println(string(output))
 		log.Println("----- END", *script, filename, "-----")

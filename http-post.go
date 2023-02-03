@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -26,6 +27,8 @@ var (
 	listenPath  = flag.String("listenPath", "/file", "Where to expect files to be posted")
 	enableTLS   = flag.Bool("tls", false, "Enable TLS for secure transport")
 	remove      = flag.Bool("rm", false, "Automatically remove file after script has finished")
+	tokens      = flag.String("tokens", "", "File to specify tokens for authentication")
+	tokenMap    = make(map[string]string)
 	version     = ""
 )
 
@@ -42,6 +45,21 @@ func main() {
 		loadTLS()
 	}
 	fmt.Println("output set to", *basePath)
+
+	if *tokens != "" {
+		if fh, err := os.Open(*tokens); err != nil {
+			log.Fatal(err)
+		} else {
+			scanner := bufio.NewScanner(fh)
+			for scanner.Scan() {
+				parts := strings.SplitN(scanner.Text(), ":", 2)
+				if len(parts) == 2 && !strings.HasPrefix(parts[0], "#") {
+					tokenMap[strings.TrimSpace(parts[1])] = strings.TrimSpace(parts[0])
+				}
+			}
+			fh.Close()
+		}
+	}
 
 	http.HandleFunc("/", uploadHandler)
 	if *enableTLS {
@@ -74,6 +92,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("Method not handled %q", r.Method)
 		return
 	}
+
+	// Use tokens file for validating connection
+	var group string
+	if *tokens != "" {
+		var ok bool
+		if group, ok = tokenMap[r.Header.Get("X-Private-Token")]; !ok {
+			err = fmt.Errorf("Token not matched %q", r.Header.Get("X-Private-Token"))
+			return
+		}
+	}
+
 	// Flatten any of the /../ junk
 	filename := filepath.Clean(r.URL.Path)
 
@@ -109,8 +138,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("successfully transferred", filename)
 
 	if *script != "" {
-		log.Println("Calling script", "/bin/bash", *script, filename)
-		output, err := exec.Command("/bin/bash", *script, filename).Output()
+		log.Println("Calling script", "/bin/bash", *script, filename, group)
+		output, err := exec.Command("/bin/bash", *script, filename, group).Output()
 		log.Println("----- START", *script, filename, "-----")
 		fmt.Println(string(output))
 		log.Println("----- END", *script, filename, "-----")

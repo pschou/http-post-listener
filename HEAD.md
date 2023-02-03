@@ -16,7 +16,7 @@ output set to output/
 Client side to trigger an upload
 ```
 $ echo -n MyData > test.file
-$ curl -vvv -k -m 1000 -f -T test.file -H "X-Private" http://localhost:8080/file/123
+$ curl -vvv -k -m 1000 -f -T test.file -H "X-Private-Token: 123" http://localhost:8080/file/123
 * About to connect() to localhost port 8080 (#0)
 *   Trying ::1...
 * Connected to localhost (::1) port 8080 (#0)
@@ -51,3 +51,25 @@ md5=cdc1c966899bb156ae7fd772af756459 output/123
 2023/02/03 15:18:44 ----- END script.sh output/123 -----
 2023/02/03 15:18:44 removed output/123
 ```
+
+Using tokens for validation:
+```
+$ curl -vvv -k -m 1000 -f -T test.file -H "X-Private-Token: 123" http://localhost:8080/file/123
+```
+
+```
+$ ./http-post -tokens token.yml  -script script.sh  -rm
+output set to output/
+2023/02/03 15:44:29 Listening with HTTP on :8080 at /file
+2023/02/03 15:44:31 recieving file "output/123"...
+2023/02/03 15:44:31 successfully transferred output/123
+2023/02/03 15:44:31 Calling script /bin/bash script.sh output/123 aGroup
+2023/02/03 15:44:31 ----- START script.sh output/123 -----
+Got file output/123
+md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
+
+2023/02/03 15:44:31 ----- END script.sh output/123 -----
+2023/02/03 15:44:31 removed output/123
+```
+
+## Usage

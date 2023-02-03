@@ -42,7 +42,7 @@ func loadTLS() {
 		Certificates:       []tls.Certificate{cert},
 		RootCAs:            caCertPool,
 		InsecureSkipVerify: false,
-		ClientAuth:         tls.RequireAndVerifyClientCert,
+		ClientAuth:         tls.VerifyClientCertIfGiven,
 
 		MinVersion:               tls.VersionTLS12,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},

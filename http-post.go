@@ -21,7 +21,7 @@ file to disk and then calling an optional script.`
 
 var (
 	basePath    = flag.String("path", "output/", "Directory which to save files")
-	script      = flag.String("script", "", "Shell script to be called on successful run")
+	script      = flag.String("script", "", "Shell script to be called on successful post")
 	scriptShell = flag.String("script-shell", "/bin/bash", "Shell to be used for script run")
 	listen      = flag.String("listen", ":8080", "Where to listen to incoming connections (example 1.2.3.4:8080)")
 	listenPath  = flag.String("listenPath", "/file", "Where to expect files to be posted")
@@ -78,6 +78,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if fh != nil {
 			fh.Close()
+			os.Remove(filename)
 		}
 		if err != nil {
 			log.Println("Error:", err)

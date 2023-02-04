@@ -76,7 +76,7 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230203.1943)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230203.2135)
 
 This utility is intended to listen on a port and handle post requests, saving each
 file to disk and then calling an optional script.
@@ -97,7 +97,7 @@ Usage: ./http-post [options]
   -rm
     	Automatically remove file after script has finished
   -script string
-    	Shell script to be called on successful run
+    	Shell script to be called on successful post
   -script-shell string
     	Shell to be used for script run (default "/bin/bash")
   -tls

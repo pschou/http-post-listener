@@ -75,6 +75,7 @@ func main() {
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var fh *os.File
+	var filename string
 	defer func() {
 		if fh != nil {
 			fh.Close()
@@ -105,7 +106,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Flatten any of the /../ junk
-	filename := filepath.Clean(r.URL.Path)
+	filename = filepath.Clean(r.URL.Path)
 
 	// Verify that the right path is being hit on POST/PUT endpoint
 	if !strings.HasPrefix(filename, *listenPath) {

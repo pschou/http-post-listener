@@ -3,15 +3,11 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/pschou/go-flowfile"
 )
 
 var (
@@ -66,49 +62,4 @@ func loadTLS() {
 		Transport: transport,
 		Timeout:   10 * time.Second,
 	}
-}
-
-func certPKIXString(name pkix.Name, sep string) (out string) {
-	for i := len(name.Names) - 1; i > 0; i-- {
-		if out != "" {
-			out += sep
-		}
-		out += pkix.RDNSequence([]pkix.RelativeDistinguishedNameSET{name.Names[i : i+1]}).String()
-	}
-	return
-}
-
-func updateChain(f *flowfile.File, r *http.Request) error {
-	opts := x509.VerifyOptions{
-		Intermediates: tlsConfig.RootCAs,
-	}
-
-	chain := []string{}
-	// Get client certificate
-	for _, c := range r.TLS.PeerCertificates {
-		_, err := c.Verify(opts)
-		if err == nil {
-			chain = []string{certPKIXString(c.Subject, ",")}
-			break
-		}
-	}
-	if len(chain) == 0 || chain[0] == "" {
-		return fmt.Errorf("Failed to verify client")
-	}
-
-	// Get the current chain:
-	for i := 0; i < 20; i++ {
-		v := fmt.Sprintf("connection-chain-%d", i)
-		if c := f.Attrs.Get(v); c != "" {
-			chain = append(chain, c)
-		}
-		f.Attrs.Unset(v)
-	}
-
-	// Set the current chain:
-	for i, c := range chain {
-		v := fmt.Sprintf("connection-chain-%d", i)
-		f.Attrs.Set(v, c)
-	}
-	return nil
 }

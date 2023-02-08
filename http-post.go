@@ -44,7 +44,7 @@ func main() {
 	if *enableTLS {
 		loadTLS()
 	}
-	fmt.Println("output set to", *basePath)
+	fmt.Println("Output set to", *basePath)
 
 	if *tokens != "" {
 		if fh, err := os.Open(*tokens); err != nil {
@@ -109,7 +109,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	filename = filepath.Clean(r.URL.Path)
 
 	// Verify that the right path is being hit on POST/PUT endpoint
-	if !strings.HasPrefix(filename, *listenPath) {
+	if !strings.HasPrefix(filename, *listenPath) || strings.HasPrefix(filename, "..") {
 		err = fmt.Errorf("Path not allowed %q", filename)
 		return
 	}
@@ -137,7 +137,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fh.Close()
 	fh = nil
 
-	log.Println("successfully transferred", filename)
+	log.Printf("successfully transferred %q\n", filename)
 
 	if *script != "" {
 		log.Println("Calling script", *scriptShell, *script, filename, group)
@@ -152,7 +152,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	if *remove {
 		os.Remove(filename)
-		log.Println("removed", filename)
+		log.Printf("removed %q\n", filename)
 	}
 	return
 }

@@ -37,6 +37,7 @@ func loadTLS() {
 	tlsConfig = &tls.Config{
 		Certificates:       []tls.Certificate{cert},
 		RootCAs:            caCertPool,
+		ClientCAs:          caCertPool,
 		InsecureSkipVerify: false,
 		ClientAuth:         tls.VerifyClientCertIfGiven,
 

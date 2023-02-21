@@ -2,6 +2,39 @@
 
 A simple HTTP POST/PUT handler
 
+The intention of this program is to be a light weight file receiver and
+processor.  The flags provided via the command line will setup the listener,
+the keys, and the output directories.
+
+When a file is uploaded to a given path, the prefix must match waht is
+expected, in the example below this is the /file directory.  The sub-paths are
+created to match the directory structure.  If a file already exists, an error
+will be thrown back and nothing will be transferred.  Any partial or incomplete
+downloads are deleted so re-uploads of the same file will not be prevented and
+the disk will not fill up.
+
+When a `-script` option is provided, the script will be ran with arguments as
+follows:
+
+1. Path to the original file
+2. Group name (if specified in a token file)
+3. An exploded directory with the contents of the archive (if the file is an
+	 archive)
+
+The exploded directory is a recursive extraction of any archived file in the
+transfer payload.  This way deep inspections of the contents of the uploaded
+files may be done inside the script.
+
+When the `-rm` option is specified, the file will be deleted after the script
+is done processing.
+
+By providing a directory to the `-explode` flag, a sub directory will be
+created with each upload's contents.  The directory format is as follows:
+[provided path]/[random string]/[contents of archives...].  Whenever a zip file
+is provided, the zip file's name will instead be a directory and the contents
+of that directory will be the contents of that zip file.  Effectively, every
+archive is expanded to disk for deep inspection.
+
 ## Example:
 
 Server side:

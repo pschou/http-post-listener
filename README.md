@@ -35,6 +35,8 @@ is provided, the zip file's name will instead be a directory and the contents
 of that directory will be the contents of that zip file.  Effectively, every
 archive is expanded to disk for deep inspection.
 
+*It is recommended to use a different partition for the output directory and the explode directory as the uncompressed part can get quite large.*
+
 ## Example:
 
 Server side:

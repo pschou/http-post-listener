@@ -75,33 +75,35 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 ## Usage
 
 ```
-# http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230208.1455)
+$ ./http-post -h
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230220.2240)
 
 This utility is intended to listen on a port and handle post requests, saving each
 file to disk and then calling an optional script.
 
 Usage: ./http-post [options]
   -CA string
-    	A PEM encoded CA's certificate file. (default "someCertCAFile")
+        A PEM encoded CA's certificate file. (default "someCertCAFile")
   -cert string
-    	A PEM encoded certificate file. (default "someCertFile")
+        A PEM encoded certificate file. (default "someCertFile")
+  -explode string
+        Directory in which to explode an archive into for inspection
   -key string
-    	A PEM encoded private key file. (default "someKeyFile")
+        A PEM encoded private key file. (default "someKeyFile")
   -listen string
-    	Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
+        Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
   -listenPath string
-    	Where to expect files to be posted (default "/file")
+        Where to expect files to be posted (default "/file")
   -path string
-    	Directory which to save files (default "output/")
+        Directory which to save files (default "output/")
   -rm
-    	Automatically remove file after script has finished
+        Automatically remove file after script has finished
   -script string
-    	Shell script to be called on successful post
+        Shell script to be called on successful post
   -script-shell string
-    	Shell to be used for script run (default "/bin/bash")
+        Shell to be used for script run (default "/bin/bash")
   -tls
-    	Enable TLS for secure transport
+        Enable TLS for secure transport
   -tokens string
-    	File to specify tokens for authentication
+        File to specify tokens for authentication
 ```

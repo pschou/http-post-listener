@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/pschou/go-exploder"
 )
 
 var about = `HTTP-Post-Listener
@@ -28,6 +32,7 @@ var (
 	enableTLS   = flag.Bool("tls", false, "Enable TLS for secure transport")
 	remove      = flag.Bool("rm", false, "Automatically remove file after script has finished")
 	tokens      = flag.String("tokens", "", "File to specify tokens for authentication")
+	explode     = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
 	tokenMap    = make(map[string]string)
 	version     = ""
 )
@@ -134,14 +139,23 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err = io.Copy(fh, r.Body); err != nil {
 		return
 	}
+
+	// If we need to explode the file, do so here
+	var explodeDir string
+	if *explode != "" {
+		explodeDir = path.Join(*explode, RandStringBytes(8))
+		stat, _ := fh.Stat()     // Get the file size
+		fh.Seek(0, io.SeekStart) // Seek to the beginning
+		exploder.Explode(explodeDir, fh, stat.Size(), -1)
+	}
 	fh.Close()
 	fh = nil
 
 	log.Printf("successfully transferred %q\n", filename)
 
 	if *script != "" {
-		log.Println("Calling script", *scriptShell, *script, filename, group)
-		output, err := exec.Command(*scriptShell, *script, filename, group).Output()
+		log.Println("Calling script", *scriptShell, *script, filename, group, explodeDir)
+		output, err := exec.Command(*scriptShell, *script, filename, group, explodeDir).Output()
 		log.Println("----- START", *script, filename, "-----")
 		fmt.Println(string(output))
 		log.Println("----- END", *script, filename, "-----")
@@ -151,8 +165,25 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *remove {
+		if explodeDir != "" {
+			os.RemoveAll(explodeDir)
+			log.Printf("removed %q\n", explodeDir)
+		}
 		os.Remove(filename)
 		log.Printf("removed %q\n", filename)
 	}
 	return
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func RandStringBytes(n int) string {
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }

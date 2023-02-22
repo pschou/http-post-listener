@@ -2,41 +2,6 @@
 
 A simple HTTP POST/PUT handler
 
-The intention of this program is to be a light weight file receiver and
-processor.  The flags provided via the command line will setup the listener,
-the keys, and the output directories.
-
-When a file is uploaded to a given path, the prefix must match waht is
-expected, in the example below this is the /file directory.  The sub-paths are
-created to match the directory structure.  If a file already exists, an error
-will be thrown back and nothing will be transferred.  Any partial or incomplete
-downloads are deleted so re-uploads of the same file will not be prevented and
-the disk will not fill up.
-
-When a `-script` option is provided, the script will be ran with arguments as
-follows:
-
-1. Path to the original file
-2. Group name (if specified in a token file)
-3. An exploded directory with the contents of the archive (if the file is an
-	 archive)
-
-The exploded directory is a recursive extraction of any archived file in the
-transfer payload.  This way deep inspections of the contents of the uploaded
-files may be done inside the script.
-
-When the `-rm` option is specified, the file will be deleted after the script
-is done processing.
-
-By providing a directory to the `-explode` flag, a sub directory will be
-created with each upload's contents.  The directory format is as follows:
-[provided path]/[random string]/[contents of archives...].  Whenever a zip file
-is provided, the zip file's name will instead be a directory and the contents
-of that directory will be the contents of that zip file.  Effectively, every
-archive is expanded to disk for deep inspection.
-
-*It is recommended to use a different partition for the output directory and the explode directory as the uncompressed part can get quite large.*
-
 ## Example:
 
 Server side:
@@ -110,35 +75,35 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 ## Usage
 
 ```
-$ ./http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230220.2240)
+# http-post -h
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230222.1340)
 
 This utility is intended to listen on a port and handle post requests, saving each
 file to disk and then calling an optional script.
 
 Usage: ./http-post [options]
   -CA string
-        A PEM encoded CA's certificate file. (default "someCertCAFile")
+    	A PEM encoded CA's certificate file. (default "someCertCAFile")
   -cert string
-        A PEM encoded certificate file. (default "someCertFile")
+    	A PEM encoded certificate file. (default "someCertFile")
   -explode string
-        Directory in which to explode an archive into for inspection
+    	Directory in which to explode an archive into for inspection
   -key string
-        A PEM encoded private key file. (default "someKeyFile")
+    	A PEM encoded private key file. (default "someKeyFile")
   -listen string
-        Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
+    	Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
   -listenPath string
-        Where to expect files to be posted (default "/file")
+    	Where to expect files to be posted (default "/file")
   -path string
-        Directory which to save files (default "output/")
+    	Directory which to save files (default "output/")
   -rm
-        Automatically remove file after script has finished
+    	Automatically remove file after script has finished
   -script string
-        Shell script to be called on successful post
+    	Shell script to be called on successful post
   -script-shell string
-        Shell to be used for script run (default "/bin/bash")
+    	Shell to be used for script run (default "/bin/bash")
   -tls
-        Enable TLS for secure transport
+    	Enable TLS for secure transport
   -tokens string
-        File to specify tokens for authentication
+    	File to specify tokens for authentication
 ```

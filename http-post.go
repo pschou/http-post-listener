@@ -146,7 +146,9 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		explodeDir = path.Join(*explode, RandStringBytes(8))
 		stat, _ := fh.Stat()     // Get the file size
 		fh.Seek(0, io.SeekStart) // Seek to the beginning
-		exploder.Explode(explodeDir, fh, stat.Size(), -1)
+		data := path.Join(explodeDir, "data")
+		os.MkdirAll(explodeDir, 0755)
+		exploder.Explode(data, fh, stat.Size(), -1)
 	}
 	fh.Close()
 	fh = nil

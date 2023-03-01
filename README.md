@@ -76,7 +76,7 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230222.1340)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230301.1144)
 
 This utility is intended to listen on a port and handle post requests, saving each
 file to disk and then calling an optional script.
@@ -90,6 +90,8 @@ Usage: ./http-post [options]
     	Directory in which to explode an archive into for inspection
   -key string
     	A PEM encoded private key file. (default "someKeyFile")
+  -limit int
+    	Limit the number of downloads/processing at a given moment to avoid disk bloat
   -listen string
     	Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
   -listenPath string

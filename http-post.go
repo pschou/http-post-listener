@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/pschou/go-exploder"
+	"github.com/remeh/sizedwaitgroup"
 )
 
 var about = `HTTP-Post-Listener
@@ -33,8 +34,11 @@ var (
 	remove      = flag.Bool("rm", false, "Automatically remove file after script has finished")
 	tokens      = flag.String("tokens", "", "File to specify tokens for authentication")
 	explode     = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
+	limit       = flag.Int("limit", 0, "Limit the number of downloads/processing at a given moment to avoid disk bloat")
 	tokenMap    = make(map[string]string)
 	version     = ""
+
+	swg sizedwaitgroup.SizedWaitGroup
 )
 
 func main() {
@@ -50,6 +54,11 @@ func main() {
 		loadTLS()
 	}
 	fmt.Println("Output set to", *basePath)
+
+	if *limit > 0 {
+		fmt.Println("Sized wait group set to:", *limit)
+		swg = sizedwaitgroup.New(*limit)
+	}
 
 	if *tokens != "" {
 		if fh, err := os.Open(*tokens); err != nil {
@@ -121,6 +130,11 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Build the exact path to where to put the file
 	filename = path.Join(*basePath, strings.TrimPrefix(filename, *listenPath))
+
+	if *limit > 0 {
+		swg.Add()
+		defer swg.Done()
+	}
 
 	// Make sure the directory exists
 	dir, _ := path.Split(filename)

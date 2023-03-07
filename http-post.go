@@ -21,22 +21,23 @@ import (
 
 var about = `HTTP-Post-Listener
 
-This utility is intended to listen on a port and handle post requests, saving each
-file to disk and then calling an optional script.`
+This utility is intended to listen on a port and handle post requests, saving
+each file to disk and then calling an optional script.`
 
 var (
-	basePath    = flag.String("path", "output/", "Directory which to save files")
-	script      = flag.String("script", "", "Shell script to be called on successful post")
-	scriptShell = flag.String("script-shell", "/bin/bash", "Shell to be used for script run")
-	listen      = flag.String("listen", ":8080", "Where to listen to incoming connections (example 1.2.3.4:8080)")
-	listenPath  = flag.String("listenPath", "/file", "Where to expect files to be posted")
-	enableTLS   = flag.Bool("tls", false, "Enable TLS for secure transport")
-	remove      = flag.Bool("rm", false, "Automatically remove file after script has finished")
-	tokens      = flag.String("tokens", "", "File to specify tokens for authentication")
-	explode     = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
-	limit       = flag.Int("limit", 0, "Limit the number of downloads/processing at a given moment to avoid disk bloat")
-	tokenMap    = make(map[string]string)
-	version     = ""
+	basePath      = flag.String("path", "output/", "Directory which to save files")
+	script        = flag.String("script", "", "Shell script to be called on successful post")
+	scriptShell   = flag.String("script-shell", "/bin/bash", "Shell to be used for script run")
+	listen        = flag.String("listen", ":8080", "Where to listen to incoming connections (example 1.2.3.4:8080)")
+	listenPath    = flag.String("listenPath", "/file", "Where to expect files to be posted")
+	enableTLS     = flag.Bool("tls", false, "Enable TLS for secure transport")
+	remove        = flag.Bool("rm", false, "Automatically remove file after script has finished")
+	enforceTokens = flag.Bool("token-enforce", false, "Enforce tokens, otherwise match only if one is provided")
+	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
+	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
+	limit         = flag.Int("limit", 0, "Limit the number of downloads/processing at a given moment to avoid disk bloat")
+	tokenMap      = make(map[string]string)
+	version       = ""
 
 	swg sizedwaitgroup.SizedWaitGroup
 )
@@ -111,10 +112,19 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Use tokens file for validating connection
 	var group string
-	if *tokens != "" {
-		var ok bool
-		if group, ok = tokenMap[r.Header.Get("X-Private-Token")]; !ok {
-			err = fmt.Errorf("Token not matched %q", r.Header.Get("X-Private-Token"))
+	var ok bool
+	if myToken := r.Header.Get("X-Private-Token"); myToken != "" {
+		// A token was provided in the header
+		group, ok = tokenMap[myToken]
+		if !ok {
+			// Token was provided and didn't match any entry
+			err = fmt.Errorf("Token not matched %q", myToken)
+			return
+		}
+	} else {
+		// A token was missing or empty
+		if *enforceTokens {
+			err = fmt.Errorf("Token was not provided")
 			return
 		}
 	}

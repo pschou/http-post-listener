@@ -76,10 +76,10 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230301.1144)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230307.1448)
 
-This utility is intended to listen on a port and handle post requests, saving each
-file to disk and then calling an optional script.
+This utility is intended to listen on a port and handle post requests, saving
+each file to disk and then calling an optional script.
 
 Usage: ./http-post [options]
   -CA string
@@ -106,6 +106,8 @@ Usage: ./http-post [options]
     	Shell to be used for script run (default "/bin/bash")
   -tls
     	Enable TLS for secure transport
+  -token-enforce
+    	Enforce tokens, otherwise match only if one is provided
   -tokens string
     	File to specify tokens for authentication
 ```

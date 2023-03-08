@@ -21,8 +21,11 @@ import (
 
 var about = `HTTP-Post-Listener
 
-This utility is intended to listen on a port and handle post requests, saving
-each file to disk and then calling an optional script.`
+This utility is intended to listen on a port and handle PUT/POST requests,
+saving each file to disk and then calling an optional processing script.  The
+optional explode flag will extract the file into a temporary path for deeper
+inspection.  The limit flag, if greater than 0, will limit the number of
+concurrent uploads which are allowed at a given moment.`
 
 var (
 	basePath      = flag.String("path", "output/", "Directory which to save files")
@@ -35,7 +38,7 @@ var (
 	enforceTokens = flag.Bool("token-enforce", false, "Enforce tokens, otherwise match only if one is provided")
 	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
-	limit         = flag.Int("limit", 0, "Limit the number of downloads/processing at a given moment to avoid disk bloat")
+	limit         = flag.Int("limit", 0, "Limit the number of uploads processed at a given moment to avoid disk bloat")
 	tokenMap      = make(map[string]string)
 	version       = ""
 
@@ -142,6 +145,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	filename = path.Join(*basePath, strings.TrimPrefix(filename, *listenPath))
 
 	if *limit > 0 {
+		// Allow or put a delay in the upload process here in case we have maxed
+		// out the number of upload slots.  The choice of doing this AFTER the
+		// authentication will then help the system absorb the to-be-failed events
+		// by killing off the session early and freeing up the socket.  The idea
+		// here is: by this point in the code, an upload is bound to be successful,
+		// so now we'll start the wait group counter.
 		swg.Add()
 		defer swg.Done()
 	}
@@ -159,7 +168,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("recieving file %q...\n", filename)
 
-	// Copy the stream to disk
+	// Copy the stream to disk into the final file location (at wire speed)
 	if _, err = io.Copy(fh, r.Body); err != nil {
 		return
 	}
@@ -179,8 +188,14 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("successfully transferred %q\n", filename)
 
+	// If a script is provided, call it with the arguments in this order:
+	//
+	// [1] Filename of the uploaded file (relative path from the CWD)
+	// [2] Group name from the Token file (this will be empty if no token was provided)
+	// [3] Extracted directory path from the upload, extracted down multiple layers
+	//
 	if *script != "" {
-		log.Println("Calling script", *scriptShell, *script, filename, group, explodeDir)
+		log.Printf("Calling script: %s %s %q %q %q\n", *scriptShell, *script, filename, group, explodeDir)
 		output, err := exec.Command(*scriptShell, *script, filename, group, explodeDir).Output()
 		log.Println("----- START", *script, filename, "-----")
 		fmt.Println(string(output))
@@ -190,11 +205,14 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Clean up time
 	if *remove {
 		if explodeDir != "" {
+			// Remove the exploded directory
 			os.RemoveAll(explodeDir)
 			log.Printf("removed %q\n", explodeDir)
 		}
+		// Remove the uploaded file
 		os.Remove(filename)
 		log.Printf("removed %q\n", filename)
 	}
@@ -205,6 +223,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+// This is used to generate random filenames for the extracted directory
 func RandStringBytes(n int) string {
 	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, n)

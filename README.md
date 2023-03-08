@@ -76,10 +76,13 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230307.1448)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230307.2138)
 
-This utility is intended to listen on a port and handle post requests, saving
-each file to disk and then calling an optional script.
+This utility is intended to listen on a port and handle PUT/POST requests,
+saving each file to disk and then calling an optional processing script.  The
+optional explode flag will extract the file into a temporary path for deeper
+inspection.  The limit flag, if greater than 0, will limit the number of
+concurrent uploads which are allowed at a given moment.
 
 Usage: ./http-post [options]
   -CA string
@@ -91,7 +94,7 @@ Usage: ./http-post [options]
   -key string
     	A PEM encoded private key file. (default "someKeyFile")
   -limit int
-    	Limit the number of downloads/processing at a given moment to avoid disk bloat
+    	Limit the number of uploads processed at a given moment to avoid disk bloat
   -listen string
     	Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
   -listenPath string

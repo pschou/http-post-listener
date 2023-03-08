@@ -35,7 +35,7 @@ var (
 	listenPath    = flag.String("listenPath", "/file", "Where to expect files to be posted")
 	enableTLS     = flag.Bool("tls", false, "Enable TLS for secure transport")
 	remove        = flag.Bool("rm", false, "Automatically remove file after script has finished")
-	enforceTokens = flag.Bool("token-enforce", false, "Enforce tokens, otherwise match only if one is provided")
+	enforceTokens = flag.Bool("enforce-tokens", false, "Enforce tokens, otherwise match only if one is provided")
 	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
 	limit         = flag.Int("limit", 0, "Limit the number of uploads processed at a given moment to avoid disk bloat")
@@ -166,7 +166,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Open the file for writing, if it alreade exists, do not allow overwrite
+	// Open the file for writing.  If it already exists, do not allow overwrite.
 	if fh, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666); err != nil {
 		return
 	}

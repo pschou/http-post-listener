@@ -2,6 +2,12 @@
 
 A simple HTTP POST/PUT handler
 
+This utility is intended to listen on a port and handle PUT/POST requests,
+saving each file to disk and then calling an optional processing script.  The
+optional explode flag will extract the file into a temporary path for deeper
+inspection (like virus scanning).  The limit flag, if greater than 0, will
+limit the number of concurrent uploads which are allowed at a given moment.
+
 ## Example:
 
 Server side:

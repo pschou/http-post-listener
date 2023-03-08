@@ -24,8 +24,8 @@ var about = `HTTP-Post-Listener
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
 optional explode flag will extract the file into a temporary path for deeper
-inspection.  The limit flag, if greater than 0, will limit the number of
-concurrent uploads which are allowed at a given moment.`
+inspection (like virus scanning).  The limit flag, if greater than 0, will
+limit the number of concurrent uploads which are allowed at a given moment.`
 
 var (
 	basePath      = flag.String("path", "output/", "Directory which to save files")
@@ -54,6 +54,11 @@ func main() {
 	}
 
 	flag.Parse()
+	if flag.NArg() != 0 {
+		fmt.Println("Unrecognized flags:", flag.Args())
+		flag.Usage()
+		os.Exit(1)
+	}
 	if *enableTLS {
 		loadTLS()
 	}

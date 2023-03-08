@@ -2,6 +2,12 @@
 
 A simple HTTP POST/PUT handler
 
+This utility is intended to listen on a port and handle PUT/POST requests,
+saving each file to disk and then calling an optional processing script.  The
+optional explode flag will extract the file into a temporary path for deeper
+inspection (like virus scanning).  The limit flag, if greater than 0, will
+limit the number of concurrent uploads which are allowed at a given moment.
+
 ## Example:
 
 Server side:
@@ -76,13 +82,13 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230307.2142)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230307.2148)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
 optional explode flag will extract the file into a temporary path for deeper
-inspection.  The limit flag, if greater than 0, will limit the number of
-concurrent uploads which are allowed at a given moment.
+inspection (like virus scanning).  The limit flag, if greater than 0, will
+limit the number of concurrent uploads which are allowed at a given moment.
 
 Usage: ./http-post [options]
   -CA string

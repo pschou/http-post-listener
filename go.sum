@@ -105,10 +105,10 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/pschou/go-cabfile v0.0.0-20220802190232-c3d1704d4fb2 h1:LM8T1kLKunlNnMnfOW1IWHlqmPXkjf+NDVcSlqJAygk=
 github.com/pschou/go-cabfile v0.0.0-20220802190232-c3d1704d4fb2/go.mod h1:U3WlICi6lj7aS6bH9R2/qN6zki9k9hqYfvpecwERbtQ=
-github.com/pschou/go-convert/bin v0.0.0-20230315121239-74402114fb1f h1:254EQYobyuxffvK+ZtX9DhZqeYE21Il3TsLjeUvUqZo=
-github.com/pschou/go-convert/bin v0.0.0-20230315121239-74402114fb1f/go.mod h1:wWFEKYfCDfo/YwSESulstgYZ23Let7Rm5s8NWBrZihc=
-github.com/pschou/go-convert/bin v0.0.0-20230315140630-bc218e523c8b h1:bYIPXz1UKw2+yDrAk6192+On+ql/rjDPYweOfTThLtI=
-github.com/pschou/go-convert/bin v0.0.0-20230315140630-bc218e523c8b/go.mod h1:wWFEKYfCDfo/YwSESulstgYZ23Let7Rm5s8NWBrZihc=
+github.com/pschou/go-convert/bin v0.0.0-20230315165312-e844e2bc5eb6 h1:nM0QikNYSFgUZjk23N5a3C7GqKZfXu5+HsBR/j9HfRw=
+github.com/pschou/go-convert/bin v0.0.0-20230315165312-e844e2bc5eb6/go.mod h1:wWFEKYfCDfo/YwSESulstgYZ23Let7Rm5s8NWBrZihc=
+github.com/pschou/go-convert/bin v0.0.0-20230315170244-4707bf44a557 h1:p7TqHd0L/i9/YAI81ScQXwFTTJMMPuEiDETWcL3aNwM=
+github.com/pschou/go-convert/bin v0.0.0-20230315170244-4707bf44a557/go.mod h1:wWFEKYfCDfo/YwSESulstgYZ23Let7Rm5s8NWBrZihc=
 github.com/pschou/go-debian v0.12.1-0.20220712183321-10c93101ec38 h1:xulXWtxuksKfWYn8i090cP4mqcvKm0bCpjfyagR3vO0=
 github.com/pschou/go-debian v0.12.1-0.20220712183321-10c93101ec38/go.mod h1:mLGXvkSUptUk8qv2gNrQ1vyqxTcWKn9UzbheKNEcKho=
 github.com/pschou/go-exploder v0.0.0-20230221033954-54d48f5f3f83 h1:vMpyuVH52ibj5HF7rxBH1TE45i69GDDUWUwItDxIpxw=

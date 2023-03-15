@@ -3,7 +3,7 @@ module main
 go 1.18
 
 require (
-	github.com/pschou/go-convert/bin v0.0.0-20230315140630-bc218e523c8b
+	github.com/pschou/go-convert/bin v0.0.0-20230315170244-4707bf44a557
 	github.com/pschou/go-exploder v0.0.0-20230221033954-54d48f5f3f83
 	github.com/remeh/sizedwaitgroup v1.0.0
 )

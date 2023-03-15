@@ -117,8 +117,9 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			os.Remove(filename)
 		}
 		if err == errorTooLarge {
-			log.Println("Error:", err)
-			http.Error(w, fmt.Sprintf("Upload too large %d > %d", uploadSize, limitSize), http.StatusRequestEntityTooLarge)
+			errDetail := fmt.Sprintf("%s, upload too large %d > %d", filename, uploadSize, limitSize)
+			log.Println("Error:", errDetail)
+			http.Error(w, errDetail, http.StatusRequestEntityTooLarge)
 		} else if err != nil {
 			log.Println("Error:", err)
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

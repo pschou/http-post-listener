@@ -82,7 +82,7 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230308.0638)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230315.1021)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
@@ -107,6 +107,8 @@ Usage: ./http-post [options]
     	Where to listen to incoming connections (example 1.2.3.4:8080) (default ":8080")
   -listenPath string
     	Where to expect files to be posted (default "/file")
+  -max string
+    	Maximum upload size permitted (for example: -max=8GB)
   -path string
     	Directory which to save files (default "output/")
   -rm

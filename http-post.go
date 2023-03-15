@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pschou/go-convert/bin"
 	"github.com/pschou/go-exploder"
 	"github.com/remeh/sizedwaitgroup"
 )
@@ -38,11 +40,14 @@ var (
 	enforceTokens = flag.Bool("enforce-tokens", false, "Enforce tokens, otherwise match only if one is provided")
 	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
+	maxSize       = flag.String("max", "", "Maximum upload size permitted (for example: -max=8GB)")
 	limit         = flag.Int("limit", 0, "Limit the number of uploads processed at a given moment to avoid disk bloat")
 	tokenMap      = make(map[string]string)
 	version       = ""
 
-	swg sizedwaitgroup.SizedWaitGroup
+	swg           sizedwaitgroup.SizedWaitGroup
+	errorTooLarge = errors.New("Upload too large")
+	limitSize     int64
 )
 
 func main() {
@@ -63,6 +68,12 @@ func main() {
 		loadTLS()
 	}
 	fmt.Println("Output set to", *basePath)
+
+	if *maxSize != "" {
+		bv := bin.MustParseBytes(*maxSize)
+		fmt.Println("Max set to:", bv)
+		limitSize = bv.Int64()
+	}
 
 	if *limit > 0 {
 		fmt.Println("Sized wait group set to:", *limit)
@@ -99,12 +110,16 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var fh *os.File
 	var filename string
+	var uploadSize int64
 	defer func() {
 		if fh != nil {
 			fh.Close()
 			os.Remove(filename)
 		}
-		if err != nil {
+		if err == errorTooLarge {
+			log.Println("Error:", err)
+			http.Error(w, fmt.Sprintf("Upload too large %d > %d", uploadSize, limitSize), http.StatusRequestEntityTooLarge)
+		} else if err != nil {
 			log.Println("Error:", err)
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -174,8 +189,21 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("recieving file %q...\n", filename)
 
 	// Copy the stream to disk into the final file location (at wire speed)
-	if _, err = io.Copy(fh, r.Body); err != nil {
-		return
+	if limitSize <= 0 {
+		// No limit, copy everything (slurrrrp!)
+		if _, err = io.Copy(fh, r.Body); err != nil {
+			return
+		}
+	} else {
+		if uploadSize, err = io.Copy(fh, io.LimitReader(r.Body, limitSize)); err != nil {
+			return
+		}
+		// Try to read more, this will only happen if the limit has been reached.
+		if extra, _ := io.Copy(io.Discard, r.Body); extra > 0 {
+			uploadSize += extra
+			err = errorTooLarge
+			return
+		}
 	}
 
 	// If we need to explode the file, do so here

@@ -56,6 +56,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s (github.com/pschou/http-post-listener, version: %s)\n%s\n\nUsage: %s [options]\n",
 			lines[0], version, lines[1], os.Args[0])
 		flag.PrintDefaults()
+		fmt.Fprintln(os.Stderr, cipher_list)
 	}
 
 	flag.Parse()
@@ -117,8 +118,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			os.Remove(filename)
 		}
 		if err == errorTooLarge {
-			errDetail := fmt.Sprintf("%s, upload too large %d > %d", filename, uploadSize, limitSize)
-			log.Println("Error:", errDetail)
+			errDetail := fmt.Sprintf("Error: File size limit %q, upload too large %d > %d", filename, uploadSize, limitSize)
+			log.Println(errDetail)
 			http.Error(w, errDetail, http.StatusRequestEntityTooLarge)
 		} else if err != nil {
 			log.Println("Error:", err)

@@ -82,7 +82,7 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230315.1359)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230328.1048)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
@@ -95,6 +95,8 @@ Usage: ./http-post [options]
     	A PEM encoded CA's certificate file. (default "someCertCAFile")
   -cert string
     	A PEM encoded certificate file. (default "someCertFile")
+  -ciphers string
+    	List of ciphers to enable (default "RSA_WITH_AES_128_GCM_SHA256, RSA_WITH_AES_256_GCM_SHA384, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256, ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
   -enforce-tokens
     	Enforce tokens, otherwise match only if one is provided
   -explode string
@@ -121,4 +123,34 @@ Usage: ./http-post [options]
     	Enable TLS for secure transport
   -tokens string
     	File to specify tokens for authentication
+
+Available ciphers to pick from:
+	# TLS 1.0 - 1.2 cipher suites.
+	RSA_WITH_RC4_128_SHA
+	RSA_WITH_3DES_EDE_CBC_SHA
+	RSA_WITH_AES_128_CBC_SHA
+	RSA_WITH_AES_256_CBC_SHA
+	RSA_WITH_AES_128_CBC_SHA256
+	RSA_WITH_AES_128_GCM_SHA256
+	RSA_WITH_AES_256_GCM_SHA384
+	ECDHE_ECDSA_WITH_RC4_128_SHA
+	ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+	ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+	ECDHE_RSA_WITH_RC4_128_SHA
+	ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+	ECDHE_RSA_WITH_AES_128_CBC_SHA
+	ECDHE_RSA_WITH_AES_256_CBC_SHA
+	ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+	ECDHE_RSA_WITH_AES_128_CBC_SHA256
+	ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+	ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+	ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+	ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+
+	# TLS 1.3 cipher suites.
+	AES_128_GCM_SHA256
+	AES_256_GCM_SHA384
+	CHACHA20_POLY1305_SHA256
 ```

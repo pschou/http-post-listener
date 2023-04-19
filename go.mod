@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/pschou/go-convert/bin v0.0.0-20230315170244-4707bf44a557
-	github.com/pschou/go-exploder v0.0.0-20230221033954-54d48f5f3f83
+	github.com/pschou/go-exploder v0.0.0-20230419140859-ba48eb049148
 	github.com/remeh/sizedwaitgroup v1.0.0
 )
 
@@ -26,7 +26,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pschou/go-cabfile v0.0.0-20220802190232-c3d1704d4fb2 // indirect
 	github.com/pschou/go-iso9660 v0.0.0-20230221023640-dd14e582d10a // indirect
-	github.com/pschou/go-tease v0.0.0-20221025010209-0509f9668b80 // indirect
+	github.com/pschou/go-tease v0.0.0-20230415042035-bc38eaa1de66 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect

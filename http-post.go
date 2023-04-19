@@ -96,7 +96,11 @@ func main() {
 		}
 	}
 
+	// Note: ServeMux also takes care of sanitizing the URL request path,
+	// redirecting any request containing . or .. elements or repeated slashes to
+	// an equivalent, cleaner URL.
 	http.HandleFunc("/", uploadHandler)
+
 	if *enableTLS {
 		log.Println("Listening with HTTPS on", *listen, "at", *listenPath)
 		server := &http.Server{Addr: *listen, TLSConfig: tlsConfig}
@@ -154,17 +158,21 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Flatten any of the /../ junk
-	filename = filepath.Clean(r.URL.Path)
-
-	// Verify that the right path is being hit on POST/PUT endpoint
-	if !strings.HasPrefix(filename, *listenPath) || strings.HasPrefix(filename, "..") {
+	// Verify that the right path is being hit on POST/PUT endpoint, an extra
+	// sanity check is done
+	if !strings.HasPrefix(r.URL.Path, *listenPath) || strings.Index(r.URL.Path, "..") >= 0 {
 		err = fmt.Errorf("Path not allowed %q", filename)
 		return
 	}
 
-	// Build the exact path to where to put the file
-	filename = path.Join(*basePath, strings.TrimPrefix(filename, *listenPath))
+	// This takes the prefix and removes it.
+	filename = strings.TrimPrefix(r.URL.Path, *listenPath)
+
+	// This Clean will fix the path format to match the local OS.
+	filename = filepath.Clean(filename)
+
+	// This will build the path to where to put the file
+	filename = path.Join(*basePath, filename)
 
 	if *limit > 0 {
 		// Allow or put a delay in the upload process here in case we have maxed
@@ -197,10 +205,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		// Copy while imposing a LimitReader restriction:
 		if uploadSize, err = io.Copy(fh, io.LimitReader(r.Body, limitSize)); err != nil {
 			return
 		}
 		// Try to read more, this will only happen if the limit has been reached.
+		// By reading off bytes to the end of the upload file, we can then return a
+		// sensible error response.
 		if extra, _ := io.Copy(io.Discard, r.Body); extra > 0 {
 			uploadSize += extra
 			err = errorTooLarge

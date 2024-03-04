@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pschou/go-convert/bin"
+	"github.com/inhies/go-bytesize"
 	"github.com/pschou/go-exploder"
 	"github.com/remeh/sizedwaitgroup"
 )
@@ -36,18 +36,22 @@ var (
 	listen        = flag.String("listen", ":8080", "Where to listen to incoming connections (example 1.2.3.4:8080)")
 	listenPath    = flag.String("listenPath", "/file", "Where to expect files to be posted")
 	enableTLS     = flag.Bool("tls", false, "Enable TLS for secure transport")
+	enforce2way   = flag.Bool("2way", false, "Enforce two way SSL validation")
 	remove        = flag.Bool("rm", false, "Automatically remove file after script has finished")
 	enforceTokens = flag.Bool("enforce-tokens", false, "Enforce tokens, otherwise match only if one is provided")
 	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
+	dns           = flag.String("dns", "", "File to specify DNs for authentication")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
 	maxSize       = flag.String("max", "", "Maximum upload size permitted (for example: -max=8GB)")
 	limit         = flag.Int("limit", 0, "Limit the number of uploads processed at a given moment to avoid disk bloat")
 	tokenMap      = make(map[string]string)
+	dnMap         = make(map[string]struct{})
 	version       = ""
 
 	swg           sizedwaitgroup.SizedWaitGroup
 	errorTooLarge = errors.New("Upload too large")
 	limitSize     int64
+	enforceDNs    bool
 )
 
 func main() {
@@ -71,14 +75,35 @@ func main() {
 	fmt.Println("Output set to", *basePath)
 
 	if *maxSize != "" {
-		bv := bin.MustParseBytes(*maxSize)
-		fmt.Println("Max set to:", bv)
-		limitSize = bv.Int64()
+		bs, err := bytesize.Parse(*maxSize)
+		if err != nil {
+			fmt.Println("Invalid mas size:", *maxSize, ",", err)
+			os.Exit(1)
+		}
+		fmt.Println("Max set to:", bs.String())
+		limitSize = int64(bs)
 	}
 
 	if *limit > 0 {
 		fmt.Println("Sized wait group set to:", *limit)
 		swg = sizedwaitgroup.New(*limit)
+	}
+
+	if *dns != "" {
+		enforceDNs = true
+		if fh, err := os.Open(*dns); err != nil {
+			log.Fatal(err)
+		} else {
+			scanner := bufio.NewScanner(fh)
+			for scanner.Scan() {
+				parts := strings.SplitN(scanner.Text(), "#", 2)
+				dn := strings.TrimSpace(parts[0]) // Remove any extra spaces
+				if len(dn) > 3 {
+					dnMap[strings.ToLower(dn)] = struct{}{}
+				}
+			}
+			fh.Close()
+		}
 	}
 
 	if *tokens != "" {
@@ -113,6 +138,17 @@ func main() {
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
+	if enforceDNs {
+		if r.TLS == nil {
+			return
+		}
+		if len(r.TLS.PeerCertificates) == 0 {
+			return
+		}
+		if _, found := dnMap[strings.ToLower(strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Subject, ",")))]; found {
+		}
+	}
+
 	var fh *os.File
 	var filename string
 	var uploadSize int64

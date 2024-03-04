@@ -82,7 +82,7 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20230419.1011)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240304.1416)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
@@ -91,12 +91,16 @@ inspection (like virus scanning).  The limit flag, if greater than 0, will
 limit the number of concurrent uploads which are allowed at a given moment.
 
 Usage: ./http-post [options]
+  -2way
+    	Enforce two way SSL validation
   -CA string
-    	A PEM encoded CA's certificate file. (default "someCertCAFile")
+    	A PEM encoded CA file with certificates for verifying client connections. (default "someCertCAFile")
   -cert string
     	A PEM encoded certificate file. (default "someCertFile")
   -ciphers string
     	List of ciphers to enable (default "RSA_WITH_AES_128_GCM_SHA256, RSA_WITH_AES_256_GCM_SHA384, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256, ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+  -dns string
+    	File to specify DNs for authentication
   -enforce-tokens
     	Enforce tokens, otherwise match only if one is provided
   -explode string

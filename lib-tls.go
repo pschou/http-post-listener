@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode"
+	_ "unsafe"
 )
 
 var (
@@ -18,6 +20,12 @@ var (
 	caFile   = flag.String("CA", "someCertCAFile", "A PEM encoded CA file with certificates for verifying client connections.")
 	ciphers  = flag.String("ciphers", "RSA_WITH_AES_128_GCM_SHA256, RSA_WITH_AES_256_GCM_SHA384, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256, ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256", "List of ciphers to enable")
 )
+
+//go:linkname defaultCipherSuitesTLS13  crypto/tls.defaultCipherSuitesTLS13
+var defaultCipherSuitesTLS13 []uint16
+
+//go:linkname defaultCipherSuitesTLS13NoAES crypto/tls.defaultCipherSuitesTLS13NoAES
+var defaultCipherSuitesTLS13NoAES []uint16
 
 var cipher_list = `
 Available ciphers to pick from:
@@ -87,15 +95,12 @@ func loadTLS() {
 		log.Fatal(err)
 	}
 
-	cipherList := []uint16{}
-	for _, c := range strings.Split(*ciphers, ",") {
-		c = strings.TrimSpace(c)
-		if cv, ok := cipher_map[c]; ok {
-			cipherList = append(cipherList, cv)
-		} else {
-			log.Fatal("Unknown cipher: ", c)
-		}
-	}
+	cipherList, minVer, maxVer := buildCipherList()
+	//fmt.Println("cipher list:", cipherList)
+
+	// Strip out ciphers which are not requested
+	defaultCipherSuitesTLS13 = intersect(defaultCipherSuitesTLS13, cipherList)
+	defaultCipherSuitesTLS13NoAES = intersect(defaultCipherSuitesTLS13NoAES, cipherList)
 
 	// Load CA cert
 	caCert, err := ioutil.ReadFile(*caFile)
@@ -119,7 +124,8 @@ func loadTLS() {
 		InsecureSkipVerify: false,
 		ClientAuth:         ClientAuth,
 
-		MinVersion:               tls.VersionTLS12,
+		MinVersion:               minVer,
+		MaxVersion:               maxVer,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 		PreferServerCipherSuites: true,
 		CipherSuites:             cipherList,
@@ -141,6 +147,51 @@ func certPKIXString(name pkix.Name, sep string) (out string) {
 			out += sep
 		}
 		out += pkix.RDNSequence([]pkix.RelativeDistinguishedNameSET{name.Names[i : i+1]}).String()
+	}
+	return
+}
+
+func buildCipherList() (cipherList []uint16, minVer, maxVer uint16) {
+	f := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c) && c != '_'
+	}
+	minVer = 0xffff
+
+	for _, testCipher := range strings.FieldsFunc(*ciphers, f) {
+		testCipher = strings.TrimSpace(testCipher)
+		var found bool
+		for _, c := range tls.CipherSuites() {
+			shortName := strings.TrimPrefix(c.Name, "TLS_")
+			if testCipher == shortName {
+				found = true
+				cipherList = append(cipherList, c.ID)
+				if first := c.SupportedVersions[0]; first < minVer {
+					minVer = first
+				}
+				if last := c.SupportedVersions[len(c.SupportedVersions)-1]; last > maxVer {
+					maxVer = last
+				}
+				break
+			}
+		}
+		if minVer < tls.VersionTLS12 {
+			minVer = tls.VersionTLS12
+		}
+		if !found {
+			log.Fatal("Unknown cipher: ", testCipher)
+		}
+	}
+	return
+}
+
+func intersect(in, match []uint16) (out []uint16) {
+	for _, a := range in {
+		for _, b := range match {
+			if a == b {
+				out = append(out, a)
+				break
+			}
+		}
 	}
 	return
 }

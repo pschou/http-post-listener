@@ -82,7 +82,7 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240304.1416)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240304.1426)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
@@ -100,7 +100,8 @@ Usage: ./http-post [options]
   -ciphers string
     	List of ciphers to enable (default "RSA_WITH_AES_128_GCM_SHA256, RSA_WITH_AES_256_GCM_SHA384, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256, ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
   -dns string
-    	File to specify DNs for authentication
+    	File to specify DNs for authentication.
+    	If provided the client must authenticate by presenting a certificate.
   -enforce-tokens
     	Enforce tokens, otherwise match only if one is provided
   -explode string

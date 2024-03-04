@@ -40,7 +40,7 @@ var (
 	remove        = flag.Bool("rm", false, "Automatically remove file after script has finished")
 	enforceTokens = flag.Bool("enforce-tokens", false, "Enforce tokens, otherwise match only if one is provided")
 	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
-	dns           = flag.String("dns", "", "File to specify DNs for authentication")
+	dns           = flag.String("dns", "", "File to specify DNs for authentication.\nIf provided the client must authenticate by presenting a certificate.")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
 	maxSize       = flag.String("max", "", "Maximum upload size permitted (for example: -max=8GB)")
 	limit         = flag.Int("limit", 0, "Limit the number of uploads processed at a given moment to avoid disk bloat")
@@ -140,12 +140,16 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if enforceDNs {
 		if r.TLS == nil {
+			log.Println("Client didn't negotiate with TLS", r.RemoteAddr)
 			return
 		}
 		if len(r.TLS.PeerCertificates) == 0 {
+			log.Println("Client didn't present TLS creds", r.RemoteAddr)
 			return
 		}
-		if _, found := dnMap[strings.ToLower(strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Subject, ",")))]; found {
+		if _, found := dnMap[strings.ToLower(strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Subject, ",")))]; !found {
+			log.Println("Client dn was not found:", certPKIXString(r.TLS.PeerCertificates[0].Subject, ","))
+			return
 		}
 	}
 

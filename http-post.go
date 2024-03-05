@@ -311,7 +311,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			cmd.Env = append(cmd.Env, "HTTP_POST_CLIENT_DN="+clientDN)
 		}
 		if issuerDN != "" {
-			cmd.Env = append(cmd.Env, "HTTP_POST_ISSUER_DN="+clientDN)
+			cmd.Env = append(cmd.Env, "HTTP_POST_ISSUER_DN="+issuerDN)
 		}
 		if filename != "" {
 			cmd.Env = append(cmd.Env, "HTTP_POST_FILE="+filename)

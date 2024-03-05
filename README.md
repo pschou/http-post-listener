@@ -80,9 +80,12 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 
 ## Usage
 
+The server has a set of configurations which can be specified, which can be found by using a `-h` on the command line like this:
+
+
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240305.1123)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240305.1511)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
@@ -101,7 +104,7 @@ Usage: ./http-post [options]
     	A PEM encoded certificate file. (default "someCertFile")
   -ciphers string
     	List of ciphers to enable (default "RSA_WITH_AES_128_GCM_SHA256, RSA_WITH_AES_256_GCM_SHA384, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_AES_256_GCM_SHA384, ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256, ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
-  -dns string
+  -dn-list string
     	File to specify DNs for authentication.
     	If provided the client must authenticate by presenting a certificate.
   -enforce-tokens
@@ -130,6 +133,13 @@ Usage: ./http-post [options]
     	Enable TLS for secure transport
   -tokens string
     	File to specify tokens for authentication
+
+The script has environment variables set if they are specified, including:
+	HTTP_POST_FILE - Filename of the uploaded file (relative path from the CWD)
+	HTTP_POST_GROUP - Group name from the Token file (this will be empty if no token was provided)
+	HTTP_POST_EXPLODE_DIR - Extracted directory path from the upload, extracted down multiple layers
+	HTTP_POST_CLIENT_DN - If there was a mutual TLS connection, this will be filled out with the DN
+	HTTP_POST_ISSUER_DN - Ditto ^, this will be filled out with the issuer's DN
 
 Available ciphers to pick from:
 	# TLS 1.0 - 1.2 cipher suites.

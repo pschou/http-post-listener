@@ -79,3 +79,6 @@ md5=0d599f0ec05c3bda8c3b8a68c32a1b47 output/123
 ```
 
 ## Usage
+
+The server has a set of configurations which can be specified, which can be found by using a `-h` on the command line like this:
+

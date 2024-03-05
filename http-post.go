@@ -40,7 +40,7 @@ var (
 	remove        = flag.Bool("rm", false, "Automatically remove file after script has finished")
 	enforceTokens = flag.Bool("enforce-tokens", false, "Enforce tokens, otherwise match only if one is provided")
 	tokens        = flag.String("tokens", "", "File to specify tokens for authentication")
-	dns           = flag.String("dns", "", "File to specify DNs for authentication.\nIf provided the client must authenticate by presenting a certificate.")
+	dnList        = flag.String("dn-list", "", "File to specify DNs for authentication.\nIf provided the client must authenticate by presenting a certificate.")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
 	maxSize       = flag.String("max", "", "Maximum upload size permitted (for example: -max=8GB)")
 	allowDup      = flag.Bool("allowDup", false, "Allow duplicate file names, but the first must complete before the replacement is sent")
@@ -61,6 +61,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s (github.com/pschou/http-post-listener, version: %s)\n%s\n\nUsage: %s [options]\n",
 			lines[0], version, lines[1], os.Args[0])
 		flag.PrintDefaults()
+		fmt.Fprintln(os.Stderr, `
+The script has environment variables set if they are specified, including:
+	HTTP_POST_FILE - Filename of the uploaded file (relative path from the CWD)
+	HTTP_POST_GROUP - Group name from the Token file (this will be empty if no token was provided)
+	HTTP_POST_EXPLODE_DIR - Extracted directory path from the upload, extracted down multiple layers
+	HTTP_POST_CLIENT_DN - If there was a mutual TLS connection, this will be filled out with the DN
+	HTTP_POST_ISSUER_DN - Ditto ^, this will be filled out with the issuer's DN`)
 		fmt.Fprintln(os.Stderr, cipher_list)
 	}
 
@@ -90,9 +97,9 @@ func main() {
 		swg = sizedwaitgroup.New(*limit)
 	}
 
-	if *dns != "" {
+	if *dnList != "" {
 		enforceDNs = true
-		if fh, err := os.Open(*dns); err != nil {
+		if fh, err := os.Open(*dnList); err != nil {
 			log.Fatal(err)
 		} else {
 			scanner := bufio.NewScanner(fh)
@@ -139,6 +146,11 @@ func main() {
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
+	var clientDN, issuerDN string
+	if r.TLS != nil && len(r.TLS.PeerCertificates) > 0 {
+		clientDN = strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Subject, ","))
+		issuerDN = strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Issuer, ","))
+	}
 	if enforceDNs {
 		if r.TLS == nil {
 			log.Println("Client didn't negotiate with TLS", r.RemoteAddr)
@@ -148,7 +160,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Client didn't present TLS creds", r.RemoteAddr)
 			return
 		}
-		if _, found := dnMap[strings.ToLower(strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Subject, ",")))]; !found {
+		if _, found := dnMap[strings.ToLower(clientDN)]; !found {
 			log.Println("Client dn was not found:", certPKIXString(r.TLS.PeerCertificates[0].Subject, ","))
 			return
 		}
@@ -294,8 +306,24 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// [3] Extracted directory path from the upload, extracted down multiple layers
 	//
 	if *script != "" {
+		cmd := exec.Command(*scriptShell, *script, filename, group, explodeDir)
+		if clientDN != "" {
+			cmd.Env = append(cmd.Env, "HTTP_POST_CLIENT_DN="+clientDN)
+		}
+		if issuerDN != "" {
+			cmd.Env = append(cmd.Env, "HTTP_POST_ISSUER_DN="+clientDN)
+		}
+		if filename != "" {
+			cmd.Env = append(cmd.Env, "HTTP_POST_FILE="+filename)
+		}
+		if group != "" {
+			cmd.Env = append(cmd.Env, "HTTP_POST_GROUP="+group)
+		}
+		if explodeDir != "" {
+			cmd.Env = append(cmd.Env, "HTTP_POST_EXPLODE_DIR="+explodeDir)
+		}
 		log.Printf("Calling script: %s %s %q %q %q\n", *scriptShell, *script, filename, group, explodeDir)
-		output, err := exec.Command(*scriptShell, *script, filename, group, explodeDir).Output()
+		output, err := cmd.Output()
 		log.Println("----- START", *script, filename, "-----")
 		fmt.Println(string(output))
 		log.Println("----- END", *script, filename, "-----")

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -23,12 +24,14 @@ func Lock(file string) {
 	if lu, ok = locker[file]; ok {
 		lu.t = time.Now()
 		lu.n = lu.n + 1
+		log.Printf("Waiting for an existing file to complete %q", file)
 	} else {
 		lu = &lockerUnit{t: time.Now(), n: 1}
 		locker[file] = lu
 	}
 	lockerMutex.Unlock()
 	lu.l.Lock()
+	log.Printf("Proceeding to recieve %q", file)
 }
 
 func Unlock(file string) {

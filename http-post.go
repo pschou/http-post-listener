@@ -150,6 +150,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.TLS != nil && len(r.TLS.PeerCertificates) > 0 {
 		clientDN = strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Subject, ","))
 		issuerDN = strings.TrimSpace(certPKIXString(r.TLS.PeerCertificates[0].Issuer, ","))
+		log.Printf("Client authenticated %q %q", clientDN, issuerDN)
 	}
 	if enforceDNs {
 		if r.TLS == nil {

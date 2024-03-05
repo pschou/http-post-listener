@@ -43,6 +43,7 @@ var (
 	dns           = flag.String("dns", "", "File to specify DNs for authentication.\nIf provided the client must authenticate by presenting a certificate.")
 	explode       = flag.String("explode", "", "Directory in which to explode an archive into for inspection")
 	maxSize       = flag.String("max", "", "Maximum upload size permitted (for example: -max=8GB)")
+	allowDup      = flag.Bool("allowDup", false, "Allow duplicate file names, but the first must complete before the replacement is sent")
 	limit         = flag.Int("limit", 0, "Limit the number of uploads processed at a given moment to avoid disk bloat")
 	tokenMap      = make(map[string]string)
 	dnMap         = make(map[string]struct{})
@@ -77,7 +78,7 @@ func main() {
 	if *maxSize != "" {
 		bs, err := bytesize.Parse(*maxSize)
 		if err != nil {
-			fmt.Println("Invalid mas size:", *maxSize, ",", err)
+			fmt.Println("Invalid max size:", *maxSize, ",", err)
 			os.Exit(1)
 		}
 		fmt.Println("Max set to:", bs.String())
@@ -215,8 +216,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	filename = path.Join(*basePath, filename)
 
 	if *limit > 0 {
-		// Allow or put a delay in the upload process here in case we have maxed
-		// out the number of upload slots.  The choice of doing this AFTER the
+		// Create a delay in the upload process here in case we have maxed out the
+		// number of upload slots.  The choice of doing this AFTER the
 		// authentication will then help the system absorb the to-be-failed events
 		// by killing off the session early and freeing up the socket.  The idea
 		// here is: by this point in the code, an upload is bound to be successful,
@@ -229,6 +230,18 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	dir, _ := path.Split(filename)
 	if err = os.MkdirAll(dir, 0755); err != nil {
 		return
+	}
+
+	if *allowDup {
+		Lock(filename)
+		defer Unlock(filename)
+		if stat, err := os.Stat(filename); err == nil {
+			if stat.Mode().IsRegular() {
+				os.Remove(filename)
+			} else {
+				log.Printf("Cannot remove file as the path is not a regualar file %q", filename)
+			}
+		}
 	}
 
 	// Open the file for writing.  If it already exists, do not allow overwrite.

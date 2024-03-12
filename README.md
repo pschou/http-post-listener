@@ -85,7 +85,7 @@ The server has a set of configurations which can be specified, which can be foun
 
 ```
 # http-post -h
-HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240305.1524)
+HTTP-Post-Listener (github.com/pschou/http-post-listener, version: 0.1.20240312.0731)
 
 This utility is intended to listen on a port and handle PUT/POST requests,
 saving each file to disk and then calling an optional processing script.  The
@@ -139,7 +139,9 @@ The script has environment variables set if they are specified, including:
 	HTTP_POST_GROUP - Group name from the Token file (this will be empty if no token was provided)
 	HTTP_POST_EXPLODE_DIR - Extracted directory path from the upload, extracted down multiple layers
 	HTTP_POST_CLIENT_DN - If there was a mutual TLS connection, this will be filled out with the DN
-	HTTP_POST_ISSUER_DN - Ditto ^, this will be filled out with the issuer's DN
+	HTTP_POST_CLIENT_ISSUER_DN - Ditto ^, this will be filled out with the issuer's DN
+	HTTP_POST_CLIENT_IP - Source IP of the connection
+	HTTP_POST_CLIENT_PORT - Source PORT of the connection
 
 Available ciphers to pick from:
 	# TLS 1.0 - 1.2 cipher suites.

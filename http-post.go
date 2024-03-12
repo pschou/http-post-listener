@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -67,7 +68,9 @@ The script has environment variables set if they are specified, including:
 	HTTP_POST_GROUP - Group name from the Token file (this will be empty if no token was provided)
 	HTTP_POST_EXPLODE_DIR - Extracted directory path from the upload, extracted down multiple layers
 	HTTP_POST_CLIENT_DN - If there was a mutual TLS connection, this will be filled out with the DN
-	HTTP_POST_ISSUER_DN - Ditto ^, this will be filled out with the issuer's DN`)
+	HTTP_POST_CLIENT_ISSUER_DN - Ditto ^, this will be filled out with the issuer's DN
+	HTTP_POST_CLIENT_IP - Source IP of the connection
+	HTTP_POST_CLIENT_PORT - Source PORT of the connection`)
 		fmt.Fprintln(os.Stderr, cipher_list)
 	}
 
@@ -262,7 +265,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("recieving file %q...\n", filename)
+	log.Printf("Receiving file %q from %s\n", filename, r.RemoteAddr)
 
 	// Copy the stream to disk into the final file location (at wire speed)
 	if limitSize <= 0 {
@@ -308,11 +311,15 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	//
 	if *script != "" {
 		cmd := exec.Command(*scriptShell, *script, filename, group, explodeDir)
+		if host, port, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+			cmd.Env = append(cmd.Env, "HTTP_POST_CLIENT_IP="+host)
+			cmd.Env = append(cmd.Env, "HTTP_POST_CLIENT_PORT="+port)
+		}
 		if clientDN != "" {
 			cmd.Env = append(cmd.Env, "HTTP_POST_CLIENT_DN="+clientDN)
 		}
 		if issuerDN != "" {
-			cmd.Env = append(cmd.Env, "HTTP_POST_ISSUER_DN="+issuerDN)
+			cmd.Env = append(cmd.Env, "HTTP_POST_CLIENT_ISSUER_DN="+issuerDN)
 		}
 		if filename != "" {
 			cmd.Env = append(cmd.Env, "HTTP_POST_FILE="+filename)
